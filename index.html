@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0a0f1c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sorter App">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<title>Sorter – App Operacional</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0f1c; --panel:#111827; --panel2:#0d1424; --line:#1f2a40; --text:#e5ecf7; --muted:#8a97b0;
+  --blue:#3b82f6; --green:#22c55e; --amber:#f59e0b; --red:#ef4444; --purple:#a855f7; --cyan:#22d3ee;
+  --nav-h: 64px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,system-ui,sans-serif;
+  min-height:100vh;
+  padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px);
+  overflow-x:hidden;
+}
+.mono{font-family:"JetBrains Mono",monospace}
+
+/* App Top Bar */
+header.app-bar{
+  position:sticky;top:0;z-index:20;
+  background:rgba(13,20,36,0.92);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+  padding:calc(10px + env(safe-area-inset-top)) 14px 10px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--blue),var(--purple));display:grid;place-items:center;font-weight:800;font-size:16px}
+.brand h1{font-size:14px;letter-spacing:.04em;line-height:1.1}
+.brand p{font-size:11px;color:var(--muted)}
+.clock{font-size:16px;font-weight:700;color:var(--cyan);text-align:right;line-height:1.1}
+.clock small{display:block;font-size:10px;color:var(--muted);font-family:Inter;font-weight:500}
+
+/* Pages / Tabs */
+.wrap{max-width:640px;margin:0 auto;padding:12px;display:flex;flex-direction:column;gap:12px}
+.tab-pane{display:none;flex-direction:column;gap:12px;animation:fadeIn .18s ease}
+.tab-pane.active{display:flex}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* Cards & Controls */
+.card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:14px;padding:14px}
+.sec-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.sec-title h2{font-size:13px;letter-spacing:.05em;display:flex;align-items:center;gap:7px}
+.dot{width:8px;height:8px;border-radius:50%}
+
+button,.btn{
+  font:600 13px Inter;border:1px solid var(--line);background:#16203a;color:var(--text);
+  padding:11px 14px;border-radius:10px;cursor:pointer;text-decoration:none;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:.12s;
+  min-height:42px;
+}
+button:active,.btn:active{transform:scale(0.97)}
+.btn-wa{background:#16a34a;border-color:#16a34a;color:#fff}
+.btn-blue{background:#2563eb;border-color:#2563eb;color:#fff}
+.btn-full{width:100%}
+
+.grid-info{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.span-2{grid-column:span 2}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:10px;font-weight:600;color:var(--muted);letter-spacing:.05em;text-transform:uppercase}
+input,select{
+  background:#0b1222;border:1px solid var(--line);color:var(--cyan);
+  font:600 14px "JetBrains Mono",monospace;padding:10px;border-radius:9px;width:100%;outline:none;min-height:42px;
+}
+input:focus,select:focus{border-color:var(--blue)}
+.status-pill{font:700 11px Inter;padding:6px 10px;border-radius:999px;border:1px solid;white-space:nowrap}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.toggle{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);cursor:pointer;padding:4px 0}
+.toggle input{width:18px;height:18px;min-height:auto;accent-color:var(--green)}
+
+/* KPIs Mobile */
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi{background:#0b1222;border:1px solid var(--line);border-radius:12px;padding:12px 10px;display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center}
+.circle{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;font:800 20px Inter;color:#fff;box-shadow:0 0 20px -4px var(--c);background:radial-gradient(circle at 30% 30%,color-mix(in srgb,var(--c) 75%,#fff),var(--c))}
+.kpi .lbl{font-size:11px;font-weight:600;line-height:1.2}
+.kpi input{text-align:center;font-size:15px;padding:8px}
+.kpi .auto{font-size:10px;color:var(--muted)}
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;width:100%;margin-top:2px}
+.steps button{padding:8px 2px;font-size:11px;min-height:36px;border-radius:7px}
+
+.bar{height:8px;border-radius:99px;background:#1a2440;overflow:hidden;margin-bottom:12px}
+.bar>div{height:100%;border-radius:99px;transition:width .35s}
+.prog{font-size:12px;font-weight:600;color:var(--muted)}
+.prog b{font-family:"JetBrains Mono",monospace}
+
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.metric{background:#0b1222;border:1px dashed var(--line);border-radius:10px;padding:9px 10px}
+.metric span{display:block;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.metric b{font:700 14px "JetBrains Mono",monospace}
+
+.warn{border:1px solid var(--red);background:#2a1016;color:#fecaca;padding:10px;border-radius:10px;font-size:12px;display:none}
+.alert{
+  display:none;border:1px solid var(--amber);background:#2b1f08;color:#fde68a;
+  padding:12px;border-radius:12px;flex-direction:column;gap:10px;
+  font-weight:600;font-size:13px;animation:pulse 1.4s infinite;
+}
+@keyframes pulse{50%{box-shadow:0 0 0 4px #f59e0b33}}
+
+pre#msg{background:#0b1222;border:1px solid var(--line);border-radius:10px;padding:12px;font:500 12px/1.55 "JetBrains Mono",monospace;white-space:pre-wrap;color:#cfe3ff;max-height:360px;overflow:auto}
+.hist{display:flex;flex-direction:column;gap:6px;max-height:300px;overflow:auto}
+.hist div{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#0b1222;border:1px solid var(--line);border-radius:8px;padding:9px 10px;font-size:11px}
+.hist em{color:var(--muted);font-style:normal}
+
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chips button{padding:7px 10px;font-size:11px;min-height:34px}
+.chips button.on{background:var(--amber);border-color:var(--amber);color:#1a1205}
+
+.contacts{display:flex;flex-direction:column;gap:8px}
+.contact{display:flex;flex-direction:column;gap:8px;background:#0b1222;border:1px solid var(--line);border-radius:10px;padding:10px}
+.contact-top{display:flex;align-items:center;justify-content:space-between}
+.contact .who b{font-size:13px;display:flex;align-items:center;gap:6px}
+.contact .who span{font:500 11px "JetBrains Mono",monospace;color:var(--muted)}
+.contact .act{display:flex;gap:6px;align-items:center}
+.contact .key{flex:1;padding:8px;font-size:12px;min-height:38px}
+.contact .del{padding:8px 10px;background:transparent;color:var(--muted);min-height:38px}
+.autoBox{margin-top:10px;background:#0b1222;border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--text)}
+.tag{font-size:9px;padding:2px 6px;border-radius:6px;font-weight:700}
+.tag.ok{background:#14532d;color:#86efac}.tag.no{background:#3b2a07;color:#fcd34d}
+
+/* Bottom Navigation Bar (Android Style) */
+nav.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:30;
+  height:calc(var(--nav-h) + env(safe-area-inset-bottom));
+  padding-bottom:env(safe-area-inset-bottom);
+  background:rgba(13,20,36,0.96);
+  backdrop-filter:blur(14px);
+  border-top:1px solid var(--line);
+  display:grid;grid-template-columns:repeat(4,1fr);
+}
+.nav-item{
+  background:transparent;border:none;border-radius:0;color:var(--muted);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  font-size:10px;font-weight:600;padding:6px 2px;min-height:auto;
+}
+.nav-item svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2}
+.nav-item.active{color:var(--cyan)}
+.nav-item.active .ico-wrap{background:rgba(34,211,238,0.14);padding:3px 14px;border-radius:99px}
+.ico-wrap{padding:3px 14px;border-radius:99px;transition:.15s}
+
+.toast{
+  position:fixed;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 14px);
+  left:50%;transform:translateX(-50%) translateY(80px);
+  background:#16a34a;color:#fff;font-weight:600;padding:10px 16px;
+  border-radius:10px;font-size:13px;transition:.25s;z-index:40;white-space:nowrap;
+  box-shadow:0 6px 20px rgba(0,0,0,0.5);
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.muted{color:var(--muted);font-size:12px}
+details.help{margin-top:10px;font-size:12px;color:var(--muted)}
+details.help summary{cursor:pointer;color:var(--cyan);font-weight:600;padding:4px 0}
+details.help ol{margin:8px 0 0 18px;line-height:1.6}
+</style>
+</head>
+<body>
+
+<header class="app-bar">
+  <div class="brand">
+    <div class="logo">S</div>
+    <div>
+      <h1>SORTER MOBILE</h1>
+      <p id="topSub">Painel Operacional</p>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <span class="status-pill" id="pill">—</span>
+    <div class="clock mono" id="clock">--:--<small id="date">--/--</small></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="alert" id="alert">
+    <span>⏰ Hora de enviar o status para o grupo!</span>
+    <div class="row">
+      <span id="alertBtns" class="row"></span>
+      <button id="snooze">Adiar 5 min</button>
+    </div>
+  </div>
+
+  <!-- ABA 1: CONTAGEM (SEPARAÇÃO + REMONTE) -->
+  <div class="tab-pane active" id="tab-contagem">
+    <!-- SEPARAÇÃO -->
+    <section class="card">
+      <div class="sec-title">
+        <h2><span class="dot" style="background:var(--green)"></span>1. SEPARAÇÃO</h2>
+        <span class="prog">Progresso: <b id="pSep" style="color:var(--green)">0%</b></span>
+      </div>
+      <div class="bar"><div id="bSep" style="background:linear-gradient(90deg,#16a34a,#4ade80);width:0"></div></div>
+      <div class="kpis">
+        <div class="kpi">
+          <div class="circle" style="--c:var(--blue)" id="cSepTot">0</div>
+          <div class="lbl">Total etq.</div>
+          <input type="number" inputmode="numeric" min="0" id="sepTot" value="987">
+        </div>
+        <div class="kpi">
+          <div class="circle" style="--c:var(--green)" id="cSepFin">0</div>
+          <div class="lbl">Finalizadas</div>
+          <input type="number" inputmode="numeric" min="0" id="sepFin" value="984">
+          <div class="steps" data-t="sepFin"><button data-d="-10">-10</button><button data-d="-1">-1</button><button data-d="1">+1</button><button data-d="10">+10</button><button data-d="50">+50</button></div>
+        </div>
+        <div class="kpi">
+          <div class="circle" style="--c:var(--amber)" id="cSepPen">0</div>
+          <div class="lbl">Pendentes</div>
+          <div class="auto">automático</div>
+        </div>
+        <div class="kpi">
+          <div class="circle" style="--c:var(--red)" id="cSepCan">0</div>
+          <div class="lbl">Canceladas</div>
+          <input type="number" inputmode="numeric" min="0" id="sepCan" value="3">
+          <div class="steps" data-t="sepCan"><button data-d="-1">-1</button><button data-d="1">+1</button></div>
+        </div>
+      </div>
+      <div class="warn" id="wSep" style="margin-top:10px"></div>
+    </section>
+
+    <!-- REMONTE -->
+    <section class="card">
+      <div class="sec-title">
+        <h2><span class="dot" style="background:var(--purple)"></span>2. REMONTE</h2>
+        <span class="prog">Progresso: <b id="pRem" style="color:var(--purple)">0%</b></span>
+      </div>
+      <div class="bar"><div id="bRem" style="background:linear-gradient(90deg,#7c3aed,#c084fc);width:0"></div></div>
+      <div class="kpis">
+        <div class="kpi">
+          <div class="circle" style="--c:var(--blue)" id="cRemTot">0</div>
+          <div class="lbl">Total cxs início</div>
+          <input type="number" inputmode="numeric" min="0" id="remTot" value="987">
+          <label class="toggle"><input type="checkbox" id="linkTot" checked> = Separação</label>
+        </div>
+        <div class="kpi">
+          <div class="circle" style="--c:var(--purple)" id="cRemFin">0</div>
+          <div class="lbl">Concluídos</div>
+          <input type="number" inputmode="numeric" min="0" id="remFin" value="721">
+          <div class="steps" data-t="remFin"><button data-d="-10">-10</button><button data-d="-1">-1</button><button data-d="1">+1</button><button data-d="10">+10</button><button data-d="50">+50</button></div>
+        </div>
+        <div class="kpi">
+          <div class="circle" style="--c:var(--amber)" id="cRemPen">0</div>
+          <div class="lbl">Pendentes</div>
+          <div class="auto">automático</div>
+        </div>
+        <div class="kpi">
+          <div class="circle" style="--c:var(--red)" id="cRemCan">0</div>
+          <div class="lbl">Cancelados</div>
+          <input type="number" inputmode="numeric" min="0" id="remCan" value="3">
+          <label class="toggle"><input type="checkbox" id="linkCan" checked> = Separação</label>
+        </div>
+      </div>
+      <div class="warn" id="wRem" style="margin-top:10px"></div>
+    </section>
+
+    <section class="card">
+      <div class="metrics" style="margin-top:0">
+        <div class="metric"><span>Tempo decorrido</span><b id="mDecorrido">—</b></div>
+        <div class="metric"><span>Última atualização</span><b id="mUpdate">—</b></div>
+        <div class="metric"><span>Ritmo remonte</span><b id="mRitmo">—</b></div>
+        <div class="metric"><span>Previsão término</span><b id="mEta">—</b></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ABA 2: TURNO & DADOS -->
+  <div class="tab-pane" id="tab-turno">
+    <section class="card">
+      <div class="sec-title">
+        <h2><span class="dot" style="background:var(--cyan)"></span>SITUAÇÃO & TURNO</h2>
+      </div>
+      <div class="row" style="margin-bottom:10px;justify-content:space-between">
+        <label class="toggle"><input type="checkbox" id="autoStatus" checked> Status automático</label>
+        <select id="status" style="width:auto"></select>
+      </div>
+      <div class="grid-info">
+        <label class="f">Data do turno<input type="date" id="dataTurno"></label>
+        <label class="f">Turno<select id="turno"><option value="">—</option><option>MANHÃ</option><option>TARDE</option><option>NOITE</option><option>MADRUGADA</option></select></label>
+        <label class="f">Hora início<input type="time" id="inicio" value="23:00"></label>
+        <label class="f">Início remonte<input type="time" id="remInicio" value="07:30"></label>
+        <label class="f">Batch / Lote<input id="batch" value="36"></label>
+        <label class="f">Minibatch<input id="mini" value="43"></label>
+        <label class="f span-2">Rotas<input id="rotas" value="04302, 04504, 04307"></label>
+        <label class="f">Destino<input id="destino" value="SÃO PAULO"></label>
+        <label class="f">Doca<input id="doca" placeholder="ex.: 12"></label>
+        <label class="f span-2">Responsável<input id="resp" placeholder="ex.: Alison"></label>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button id="hojeTurno" class="btn-full">↻ Usar data do turno atual</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- ABA 3: WHATSAPP & MENSAGEM -->
+  <div class="tab-pane" id="tab-whatsapp">
+    <section class="card">
+      <div class="sec-title">
+        <h2><span class="dot" style="background:#16a34a"></span>MENSAGEM DE STATUS</h2>
+      </div>
+      <label class="toggle" style="margin-bottom:8px"><input type="checkbox" id="msgExtra" checked> Incluir ritmo, previsão e tempo decorrido</label>
+      <pre id="msg"></pre>
+      <div class="grid-info" style="margin-top:12px">
+        <button id="copy">📋 Copiar texto</button>
+        <a class="btn btn-wa" id="wa" href="#">📲 Enviar WhatsApp</a>
+      </div>
+      <button id="shareNative" class="btn-blue btn-full" style="margin-top:8px">📤 Compartilhar (Menu Android)</button>
+    </section>
+
+    <section class="card">
+      <div class="sec-title"><h2><span class="dot" style="background:var(--amber)"></span>LEMBRETE & ENVIO AUTO</h2></div>
+      <label class="f">Intervalo de alerta
+        <div class="row" style="flex-wrap:nowrap">
+          <input type="range" id="intRange" min="0" max="60" step="1" style="padding:0;accent-color:var(--amber)">
+          <select id="intervalo" style="width:140px"></select>
+        </div>
+      </label>
+      <div class="chips" id="chips"></div>
+      <p class="muted" style="margin:10px 0">Próximo envio: <b class="mono" id="next" style="color:var(--amber)">—</b></p>
+      <label class="toggle autoBox"><input type="checkbox" id="autoSend"> <b>Envio automático CallMeBot</b> (requer chave API no contato)</label>
+      <div class="warn" id="autoWarn" style="margin-top:8px"></div>
+    </section>
+  </div>
+
+  <!-- ABA 4: CONTATOS & HISTÓRICO -->
+  <div class="tab-pane" id="tab-ajustes">
+    <section class="card">
+      <div class="sec-title"><h2><span class="dot" style="background:var(--blue)"></span>CONTATOS RÁPIDOS</h2></div>
+      <div class="contacts" id="contacts"></div>
+      <div class="grid-info" style="margin-top:10px">
+        <input id="cNome" placeholder="Nome">
+        <input id="cFone" type="tel" placeholder="11 99999-9999">
+      </div>
+      <button id="cAdd" class="btn-blue btn-full" style="margin-top:8px">+ Adicionar Contato</button>
+
+      <label class="f" style="margin-top:12px">Modo de abertura no Android
+        <select id="waMode">
+          <option value="app">App WhatsApp instalado (Recomendado Android)</option>
+          <option value="api">Link universal (api.whatsapp.com)</option>
+          <option value="web">WhatsApp Web</option>
+        </select>
+      </label>
+
+      <details class="help"><summary>⚡ Como ativar envio automático (CallMeBot)</summary>
+        <ol>
+          <li>Envie <b>I allow callmebot to send me messages</b> para <b>+34 684 73 40 44</b> no WhatsApp.</li>
+          <li>Cole a <b>APIKEY</b> recebida no campo "chave API" do contato acima.</li>
+          <li>Ative a opção <b>Envio automático CallMeBot</b> na aba WhatsApp.</li>
+        </ol>
+      </details>
+    </section>
+
+    <section class="card">
+      <div class="sec-title">
+        <h2><span class="dot" style="background:var(--purple)"></span>HISTÓRICO DE ENVIOS</h2>
+        <button id="clearH" style="padding:6px 10px;min-height:32px;font-size:11px">Limpar</button>
+      </div>
+      <div class="hist" id="hist"><span class="muted">Nenhum envio ainda.</span></div>
+    </section>
+  </div>
+</div>
+
+<!-- BOTTOM NAVIGATION BAR -->
+<nav class="bottom-nav">
+  <button class="nav-item active" data-tab="tab-contagem">
+    <div class="ico-wrap"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg></div>
+    <span>Contagem</span>
+  </button>
+  <button class="nav-item" data-tab="tab-turno">
+    <div class="ico-wrap"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg></div>
+    <span>Turno</span>
+  </button>
+  <button class="nav-item" data-tab="tab-whatsapp">
+    <div class="ico-wrap"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div>
+    <span>WhatsApp</span>
+  </button>
+  <button class="nav-item" data-tab="tab-ajustes">
+    <div class="ico-wrap"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+    <span>Contatos</span>
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// Registro do Service Worker para funcionamento Offline / Instalação Android (PWA)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+
+// Navegação por abas estilo Android
+document.querySelectorAll('.nav-item').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  });
+});
+
+const $ = id => document.getElementById(id);
+const STATUS = {
+  AGUARDANDO:{c:'#8a97b0',e:'⚪'}, INDUZINDO:{c:'#22c55e',e:'🟢'}, SEPARANDO:{c:'#3b82f6',e:'🔵'}, REMONTANDO:{c:'#a855f7',e:'🟣'},
+  PAUSADO:{c:'#f59e0b',e:'🟡'}, PARADO:{c:'#ef4444',e:'🔴'}, FINALIZADO:{c:'#22d3ee',e:'✅'}
+};
+Object.keys(STATUS).forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;$('status').appendChild(o)});
+
+(function(){
+  const sel=$('intervalo');
+  const o0=document.createElement('option');o0.value=0;o0.textContent='Desligado';sel.appendChild(o0);
+  for(let i=1;i<=60;i++){const o=document.createElement('option');o.value=i;o.textContent=i===60?'1 hora':`${i} min`;sel.appendChild(o)}
+  sel.value=15;
+})();
+
+const FIELDS=['waMode','dataTurno','turno','doca','resp','inicio','remInicio','batch','mini','rotas','destino','sepTot','sepFin','sepCan','remTot','remFin','remCan','intervalo','status'];
+const CHECKS=['autoStatus','linkTot','linkCan','autoSend','msgExtra'];
+const DEFAULT_CONTACTS=[{nome:'Alison Antunes',fone:'5511961872188'},{nome:'Vasco',fone:'5511926505204'}];
+let state={lastUpdate:Date.now(), nextSend:null, history:[], snapshots:[], contacts:DEFAULT_CONTACTS.slice()};
+
+function store(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function load(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}
+
+const saved=load('sorterPanel');
+if(saved){
+  FIELDS.forEach(f=>{if(saved.f&&saved.f[f]!=null)$(f).value=saved.f[f]});
+  CHECKS.forEach(c=>{if(saved.c&&saved.c[c]!=null)$(c).checked=saved.c[c]});
+  Object.assign(state,saved.s||{});
+}
+function persist(){
+  const f={},c={};FIELDS.forEach(k=>f[k]=$(k).value);CHECKS.forEach(k=>c[k]=$(k).checked);
+  store('sorterPanel',{f,c,s:state});
+}
+
+const n=id=>Math.max(0,parseInt($(id).value)||0);
+const fmtN=v=>v.toLocaleString('pt-BR');
+const pct=v=>(isFinite(v)?v:0).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
+const hhmm=d=>d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+const full=d=>d.toLocaleDateString('pt-BR')+' '+hhmm(d);
+
+function toMin(t){const [h,m]=(t||'00:00').split(':').map(Number);return (h||0)*60+(m||0)}
+function autoShiftStart(){
+  const [h,m]=($('inicio').value||'00:00').split(':').map(Number);
+  const now=new Date(), d=new Date(now); d.setHours(h,m,0,0);
+  if(d>now) d.setDate(d.getDate()-1);
+  return d;
+}
+const isoDate=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+function startDate(v){
+  const ini=$('inicio').value||'00:00', t=v||ini, dt=$('dataTurno').value;
+  if(!dt){
+    const d=autoShiftStart(); const [h,m]=t.split(':').map(Number);
+    const r=new Date(d); r.setHours(h,m,0,0); if(r<d) r.setDate(r.getDate()+1); return r;
+  }
+  const [Y,M,D]=dt.split('-').map(Number), [h,m]=t.split(':').map(Number);
+  const r=new Date(Y,M-1,D,h,m,0,0);
+  if(v && toMin(v)<toMin(ini)) r.setDate(r.getDate()+1);
+  return r;
+}
+function dur(ms){const t=Math.max(0,Math.floor(ms/60000));return Math.floor(t/60)+'h'+String(t%60).padStart(2,'0')}
+
+function calc(){
+  if($('linkTot').checked) $('remTot').value=n('sepTot');
+  if($('linkCan').checked) $('remCan').value=n('sepCan');
+  $('remTot').disabled=$('linkTot').checked; $('remCan').disabled=$('linkCan').checked;
+
+  const sT=n('sepTot'),sF=n('sepFin'),sC=n('sepCan'),sP=Math.max(0,sT-sF-sC);
+  const rT=n('remTot'),rF=n('remFin'),rC=n('remCan'),rP=Math.max(0,rT-rF-rC);
+  const sPct=sT?(sF+sC)/sT*100:0, rPct=rT?(rF+rC)/rT*100:0;
+
+  const ws=sF+sC>sT?`⚠ Finalizadas + canceladas (${fmtN(sF+sC)}) passam do total (${fmtN(sT)}).`:'';
+  const wr=rF+rC>rT?`⚠ Concluídos + cancelados (${fmtN(rF+rC)}) passam do total (${fmtN(rT)}).`:'';
+  $('wSep').style.display=ws?'block':'none';$('wSep').textContent=ws;
+  $('wRem').style.display=wr?'block':'none';$('wRem').textContent=wr;
+
+  if($('autoStatus').checked && !['PAUSADO','PARADO'].includes($('status').value)){
+    $('status').value = (rT && rPct>=100) ? 'FINALIZADO' : (sT && sPct>=100) ? 'REMONTANDO' : (sF>0 ? 'INDUZINDO' : 'AGUARDANDO');
+  }
+  const st=$('status').value, sc=STATUS[st];
+  $('pill').textContent=sc.e+' '+st; $('pill').style.color=sc.c; $('pill').style.borderColor=sc.c; $('pill').style.background=sc.c+'1a';
+  $('topSub').textContent=`Lote ${$('batch').value} · ${$('destino').value}`;
+
+  $('cSepTot').textContent=fmtN(sT);$('cSepFin').textContent=fmtN(sF);$('cSepPen').textContent=fmtN(sP);$('cSepCan').textContent=fmtN(sC);
+  $('cRemTot').textContent=fmtN(rT);$('cRemFin').textContent=fmtN(rF);$('cRemPen').textContent=fmtN(rP);$('cRemCan').textContent=fmtN(rC);
+  $('pSep').textContent=pct(sPct);$('bSep').style.width=Math.min(100,sPct)+'%';
+  $('pRem').textContent=pct(rPct);$('bRem').style.width=Math.min(100,rPct)+'%';
+
+  const now=Date.now();
+  let rate=null;
+  const snaps=state.snapshots.filter(s=>now-s.t<3*3600e3 && s.v<=rF);
+  if(snaps.length && rF>snaps[0].v && now-snaps[0].t>60e3){ rate=(rF-snaps[0].v)/((now-snaps[0].t)/3600e3); }
+  else { const el=(now-startDate($('remInicio').value||$('inicio').value))/3600e3; if(el>0.05 && rF>0) rate=rF/el; }
+  $('mRitmo').textContent=rate?Math.round(rate)+' cx/h':'—';
+  let eta='—';
+  if(rP===0 && rT) eta='Concluído'; else if(rate) eta=hhmm(new Date(now+rP/rate*3600e3));
+  $('mEta').textContent=eta;
+  $('mDecorrido').textContent=dur(now-startDate());
+  $('mUpdate').textContent=hhmm(new Date(state.lastUpdate));
+
+  return {sT,sF,sC,sP,rT,rF,rC,rP,sPct,rPct,st,sc,rate,eta};
+}
+
+function buildMsg(){
+  const d=calc(), now=new Date();
+  const data=startDate().toLocaleDateString('pt-BR');
+  const turno=$('turno').value, doca=$('doca').value.trim(), resp=$('resp').value.trim();
+  const sit=d.st.charAt(0)+d.st.slice(1).toLowerCase();
+  const prev=d.eta==='Concluído'?'concluído':(d.eta==='—'?'sem previsão':'por volta das '+d.eta);
+  let resumo;
+  if(d.st==='FINALIZADO') resumo='Operação finalizada.';
+  else if(d.sPct>=100) resumo=`Separação concluída. Remonte em ${pct(d.rPct)}, ${d.rP===1?'falta 1 caixa':'faltam '+fmtN(d.rP)+' caixas'}.`;
+  else resumo=`Separação em ${pct(d.sPct)}, ${d.sP===1?'falta 1 etiqueta':'faltam '+fmtN(d.sP)+' etiquetas'}.`;
+  const extra=$('msgExtra').checked?`
+⏱ Tempo decorrido: ${dur(now-startDate())}
+🚚 Ritmo remonte: ${d.rate?Math.round(d.rate)+' cx/h':'—'}
+🏁 Previsão de término: ${prev}
+`:'';
+  const ops=[doca?'Doca '+doca:'',resp?'Resp.: '+resp:''].filter(Boolean).join(' · ');
+  return `*Status Sorter* – ${data}${turno?' · Turno '+turno:''}
+Atualizado às ${hhmm(now)}
+
+Situação: *${sit}*
+${resumo}
+${extra}
+*Separação* (${pct(d.sPct)})
+Total: ${fmtN(d.sT)}
+Finalizadas: ${fmtN(d.sF)}
+Pendentes: ${fmtN(d.sP)}
+Canceladas: ${fmtN(d.sC)}
+
+*Remonte* (${pct(d.rPct)})
+Total: ${fmtN(d.rT)}
+Concluídos: ${fmtN(d.rF)}
+Pendentes: ${fmtN(d.rP)}
+Cancelados: ${fmtN(d.rC)}
+
+Lote ${$('batch').value} · Minibatch ${$('mini').value}
+Rotas: ${$('rotas').value}
+Destino: ${$('destino').value}${ops?'
+'+ops:''}
+Início ${$('inicio').value} · Inicio do Remonte: ${$('remInicio').value||'--:--'}hrs`;
+}
+
+function waUrl(text,fone){
+  const f=(fone||'').replace(/\D/g,''), t=encodeURIComponent(text), mode=$('waMode').value;
+  if(mode==='app') return `whatsapp://send?${f?'phone='+f+'&':''}text=${t}`;
+  if(mode==='web') return `https://web.whatsapp.com/send?${f?'phone='+f+'&':''}text=${t}`;
+  return `https://api.whatsapp.com/send?${f?'phone='+f+'&':''}text=${t}`;
+}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function fmtFone(f){const d=f.replace(/\D/g,'');const m=d.match(/^(\d{2})(\d{2})(\d{4,5})(\d{4})$/);return m?`+${m[1]} ${m[2]} ${m[3]}-${m[4]}`:'+'+d}
+
+function renderContacts(){
+  const m=$('msg').textContent;
+  $('contacts').innerHTML=state.contacts.length?state.contacts.map((c,i)=>`
+    <div class="contact">
+      <div class="contact-top">
+        <div class="who"><b>${esc(c.nome)}${c.apikey?'<span class="tag ok">AUTO</span>':'<span class="tag no">MANUAL</span>'}</b><span>${fmtFone(c.fone)}</span></div>
+        <div class="act">
+          ${c.apikey?`<button data-test="${i}" style="padding:6px 10px;min-height:36px;font-size:12px">Testar</button>`:''}
+          <a class="btn btn-wa" data-i="${i}" href="${waUrl(m,c.fone)}" style="padding:6px 12px;min-height:36px;font-size:12px">📲 Enviar</a>
+          <button class="del" data-del="${i}" title="Remover">✕</button>
+        </div>
+      </div>
+      <input class="key" data-key="${i}" placeholder="Chave API CallMeBot (opcional)" value="${esc(c.apikey||'')}">
+    </div>`).join(''):'<span class="muted">Nenhum contato cadastrado.</span>';
+  $('alertBtns').innerHTML=state.contacts.map((c,i)=>`<a class="btn btn-wa" data-i="${i}" href="${waUrl(m,c.fone)}" style="padding:8px 10px;min-height:36px;font-size:12px">📲 ${esc(c.nome.split(' ')[0])}</a>`).join('')
+    +`<a class="btn btn-wa" data-i="-1" href="${waUrl(m)}" style="padding:8px 10px;min-height:36px;font-size:12px">📲 Grupo</a>`;
+}
+
+function renderChips(){
+  const v=+$('intervalo').value;
+  $('intRange').value=v;
+  $('chips').innerHTML=[5,10,15,20,30,45,60].map(x=>`<button data-m="${x}" class="${x===v?'on':''}">${x===60?'1h':x+'m'}</button>`).join('');
+}
+
+function render(){
+  const m=buildMsg();
+  $('msg').textContent=m;
+  $('wa').href=waUrl(m);
+  renderContacts(); renderChips(); renderHist(); renderNext(); persist();
+}
+
+function renderHist(){
+  const h=state.history;
+  $('hist').innerHTML=h.length?h.slice().reverse().map(x=>`<div><span>${x.e} ${x.st} · Sep ${x.s} · Rem ${x.r}${x.to?' → '+esc(x.to):''}</span><em class="mono">${x.t}</em></div>`).join(''):'<span class="muted">Nenhum envio ainda.</span>';
+}
+function scheduleNext(){
+  const iv=+$('intervalo').value; state.nextSend=iv?Date.now()+iv*60e3:null;
+}
+function setInterval_(v){$('intervalo').value=v;scheduleNext();render()}
+
+async function sendCallMeBot(c,text){
+  const url=`https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent('+'+c.fone)}&text=${encodeURIComponent(text)}&apikey=${encodeURIComponent(c.apikey)}`;
+  await fetch(url,{mode:'no-cors',cache:'no-store'});
+}
+let sending=false, autoBlocked=false, manualPending=false;
+async function autoSendAll(test){
+  const list=test!=null?[state.contacts[test]]:state.contacts.filter(c=>c.apikey);
+  if(!list.length||sending) return false;
+  sending=true;
+  const text=buildMsg(); let ok=[],fail=[];
+  for(const c of list){
+    try{await sendCallMeBot(c,text);ok.push(c.nome)}catch(e){fail.push(c.nome)}
+    await new Promise(r=>setTimeout(r,1500));
+  }
+  sending=false;
+  if(ok.length){
+    logSend('🤖 '+ok.join(', '));toast('Enviado automaticamente ✔');
+    if(test==null && state.contacts.some(c=>!c.apikey)) manualPending=true;
+  }
+  if(fail.length && !ok.length) autoBlocked=true;
+  if(fail.length){
+    $('autoWarn').style.display='block';
+    $('autoWarn').innerHTML='⚠ Falha na conexão com CallMeBot. Use os botões manuais.';
+  } else $('autoWarn').style.display='none';
+  return ok.length>0;
+}
+
+function renderNext(){
+  if(!state.nextSend){$('next').textContent='desligado';$('alert').style.display='none';return}
+  const left=state.nextSend-Date.now();
+  if(left<=0 && $('autoSend').checked && !autoBlocked && state.contacts.some(c=>c.apikey)){
+    if(!sending){ $('next').textContent='enviando…'; autoSendAll(); }
+    return;
+  }
+  if(left<=0){$('next').textContent='AGORA';$('alert').style.display='flex';return}
+  $('alert').style.display=manualPending?'flex':'none';
+  const s=Math.floor(left/1000);
+  $('next').textContent=hhmm(new Date(state.nextSend))+` (${Math.floor(s/60)}:${String(s%60).padStart(2,'0')})`;
+}
+function logSend(to){
+  const d=calc();
+  state.history.push({t:full(new Date()),st:d.st,e:d.sc.e,s:pct(d.sPct),r:pct(d.rPct),to:to||''});
+  if(state.history.length>50) state.history.shift();
+  if(!String(to).startsWith('🤖')) manualPending=false;
+  scheduleNext(); render(); toast('Status registrado ✔');
+}
+function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),1800)}
+
+function changed(){
+  state.lastUpdate=Date.now();
+  const rF=n('remFin');
+  state.snapshots.push({t:Date.now(),v:rF});
+  state.snapshots=state.snapshots.filter(s=>Date.now()-s.t<3*3600e3).slice(-200);
+  if(navigator.vibrate) navigator.vibrate(25);
+  render();
+}
+
+FIELDS.filter(f=>!['fone','intervalo','status'].includes(f)).forEach(f=>$(f).addEventListener('input',changed));
+CHECKS.forEach(c=>$(c).addEventListener('change',()=>{autoBlocked=false;render()}));
+$('status').addEventListener('change',()=>{$('autoStatus').checked=false;changed()});
+$('intervalo').addEventListener('change',()=>setInterval_(+$('intervalo').value));
+$('intRange').addEventListener('input',()=>{$('intervalo').value=$('intRange').value;renderChips()});
+$('intRange').addEventListener('change',()=>setInterval_(+$('intRange').value));
+$('chips').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setInterval_(+b.dataset.m)});
+
+function onSendClick(e){
+  const a=e.target.closest('a[data-i]');
+  if(a){const i=+a.dataset.i,c=state.contacts[i];a.href=waUrl(buildMsg(),c&&c.fone);setTimeout(()=>logSend(c?c.nome:'Grupo'),50);return}
+  const t=e.target.closest('[data-test]');
+  if(t){autoSendAll(+t.dataset.test);return}
+  const d=e.target.closest('[data-del]');
+  if(d){state.contacts.splice(+d.dataset.del,1);render()}
+}
+$('contacts').addEventListener('change',e=>{
+  const k=e.target.closest('[data-key]');
+  if(k){state.contacts[+k.dataset.key].apikey=k.value.trim();render()}
+});
+$('contacts').addEventListener('click',onSendClick);
+$('alertBtns').addEventListener('click',onSendClick);
+$('cAdd').addEventListener('click',()=>{
+  const nome=$('cNome').value.trim(),fone=$('cFone').value.replace(/\D/g,'');
+  if(!nome||fone.length<10){toast('Informe nome e número com DDD');return}
+  state.contacts.push({nome,fone:fone.length<=11?'55'+fone:fone});$('cNome').value='';$('cFone').value='';render();toast('Contato adicionado ✔');
+});
+document.querySelectorAll('.steps').forEach(g=>g.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  const t=$(g.dataset.t);t.value=Math.max(0,(parseInt(t.value)||0)+(+b.dataset.d));changed();
+}));
+$('copy').addEventListener('click',async()=>{
+  try{await navigator.clipboard.writeText(buildMsg());toast('Mensagem copiada ✔');logSend()}
+  catch(e){toast('Erro ao copiar')}
+});
+$('shareNative').addEventListener('click',async()=>{
+  const text=buildMsg();
+  if(navigator.share){
+    try{await navigator.share({title:'Status Sorter',text});logSend('Compartilhado')}catch(e){}
+  } else {
+    window.open(waUrl(text),'_blank');logSend('WhatsApp');
+  }
+});
+$('wa').addEventListener('click',()=>{$('wa').href=waUrl(buildMsg());setTimeout(()=>logSend('Grupo'),50)});
+$('snooze').addEventListener('click',()=>{manualPending=false;state.nextSend=Date.now()+5*60e3;render()});
+$('hojeTurno').addEventListener('click',()=>{$('dataTurno').value=isoDate(autoShiftStart());changed();toast('Data do turno atualizada ✔')});
+$('clearH').addEventListener('click',()=>{state.history=[];render()});
+
+function tick(){
+  const d=new Date();
+  $('clock').firstChild.textContent=d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  $('date').textContent=d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+  renderNext();
+}
+if(!$('dataTurno').value) $('dataTurno').value=isoDate(autoShiftStart());
+if(!state.nextSend) scheduleNext();
+if(!state.snapshots.length) state.snapshots.push({t:Date.now(),v:n('remFin')});
+tick(); render();
+setInterval(tick,1000);
+setInterval(()=>{$('msg').textContent=buildMsg();$('wa').href=waUrl($('msg').textContent);renderContacts()},30000);
+</script>
+</body>
+</html>
